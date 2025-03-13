@@ -4,9 +4,9 @@
     <br>
     <div class="d-flex justify-content-center">
         <div class="d-flex flex-row">
-            <a href="{{route('color.create')}}" class="btn btn-dark btn-outline-light btn-lg px-5 text-white-50 fw-bold">Сggg цвет</a>
+            <a href="{{route('color.create')}}" class="btn btn-dark btn-outline-light btn-lg px-5 text-white-50 fw-bold">Создать цвет</a>
             <a href="{{route('category.create')}}" class="btn btn-dark btn-outline-light btn-lg px-5 text-white-50 fw-bold">Создать категорию</a>
-            <a href="{{route('clotch.create')}}" class="btn btn-dark btn-outline-light btn-lg px-5 text-white-50 fw-bold">Создать вещь</a>
+            <a href="{{route('clotch.create')}}" class="btn btn-dark btn-outline-light btn-lg px-5 text-white-50 fw-bold">Добавить вещь</a>
             <a href="{{route('collection.create')}}" class="btn btn-dark btn-outline-light btn-lg px-5 text-white-50 fw-bold">Создать коллекцию</a>
         </div>
     </div><br><br>
