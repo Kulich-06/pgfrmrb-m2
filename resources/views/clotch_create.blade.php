@@ -12,7 +12,7 @@
                         <div class="card bg-dark text-white" style="border-radius: 1rem;">
                             <div class="card-body p-5 text-center">
                                 <h2 class="fw-bold mb-2 text-uppercase">Добавление одежды</h2>
-                                <br><br>
+                                <br>
                                 <form id="clotchForm" method="POST" enctype="multipart/form-data">
                                     @csrf
                                     <input type="text" id="name" name="name"

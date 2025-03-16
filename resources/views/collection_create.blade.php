@@ -10,7 +10,7 @@
                         <div class="card bg-dark text-white" style="border-radius: 1rem;">
                             <div class="card-body p-5 text-center">
                                 <h2 class="fw-bold mb-2 text-uppercase">Создание коллекции</h2>
-                                <br><br>
+                                <br>
                                 {{-- Вывод ошибок --}}
                                 @if ($errors->any())
                                     <div class="alert alert-danger">

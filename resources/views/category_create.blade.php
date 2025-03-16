@@ -19,7 +19,7 @@
                         <div class="card bg-dark text-white" style="border-radius: 1rem;">
                             <div class="card-body p-5 text-center">
                                 <h2 class="fw-bold mb-2 text-uppercase">Добавление категории</h2>
-                                <br><br>
+                                <br>
                                 <!-- Добавили контейнер для алертов -->
                                 <div id="alertContainer"></div>
 
