@@ -14,6 +14,8 @@ return new class extends Migration
         Schema::create('colors', function (Blueprint $table) {
             $table->id();
             $table->string('name', 100);
+            $table->unsignedBigInteger('user_id')->nullable(); // Добавляем user_id
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade'); // Связь с users
             $table->timestamps();
         });
     }
@@ -23,6 +25,13 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::table('colors', function (Blueprint $table) {
+            if (Schema::hasColumn('colors', 'user_id')) {
+                $table->dropForeign(['user_id']);
+                $table->dropColumn('user_id');
+            }
+        });
+
         Schema::dropIfExists('colors');
     }
 };
