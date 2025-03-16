@@ -1,6 +1,6 @@
-@extends("main")
-@section("title", "Коллекции")
-@section("content")
+@extends('main')
+@section('title', 'Коллекции')
+@section('content')
     <h3 class="text-center text-dark-50 mt-5">Коллекции</h3> <!-- Добавлен отступ от шапки -->
     <br><br>
     <div class="container">
@@ -16,14 +16,15 @@
                             <h5 class="card-title">{{ $collection->name }}</h5>
                             <div class="mt-auto d-flex justify-content-between">
                                 <a href="#" class="btn btn-outline-info">Посмотреть</a>
-                                <form action="{{ route('collection.destroy', $collection->id) }}" method="POST" onsubmit="return confirm('Вы уверены, что хотите удалить эту коллекцию?');">
+                                <form action="{{ route('collection.destroy', $collection->id) }}" method="POST"
+                                    onsubmit="return confirm('Вы уверены, что хотите удалить эту коллекцию?');">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-outline-danger">Удалить</button>
                                 </form>
 
                                 <!-- Кнопка "Посмотреть" -->
-                                
+
                             </div>
                         </div>
                     </div>
@@ -33,11 +34,11 @@
 
         <!-- Форма для добавления коллекции (для неавторизованных пользователей) -->
         @guest
-        <div class="row mt-4">
-            <div class="col-12 text-center">
-                <button class="btn btn-outline-light btn-lg" id="addCollectionBtn">Добавить коллекцию</button>
+            <div class="row mt-4">
+                <div class="col-12 text-center">
+                    <button class="btn btn-outline-light btn-lg" id="addCollectionBtn">Добавить коллекцию</button>
+                </div>
             </div>
-        </div>
         @endguest
     </div>
 
@@ -79,7 +80,7 @@
         }
 
         // Обработчик кнопки добавления коллекции
-        document.getElementById('addCollectionBtn').addEventListener('click', function () {
+        document.getElementById('addCollectionBtn').addEventListener('click', function() {
             const collectionName = prompt('Введите название коллекции:');
             if (collectionName) {
                 const newCollection = {
@@ -89,7 +90,7 @@
                 guestCollections.push(newCollection);
                 localStorage.setItem('guestCollections', JSON.stringify(guestCollections));
                 alert('Коллекция сохранена на устройстве!');
-                window.location.reload();  // Обновляем страницу для отображения новой коллекции
+                window.location.reload(); // Обновляем страницу для отображения новой коллекции
             }
         });
     </script>

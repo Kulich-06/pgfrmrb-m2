@@ -12,7 +12,7 @@
                         <div class="card bg-dark text-white" style="border-radius: 1rem;">
                             <div class="card-body p-5 text-center">
                                 <h2 class="fw-bold mb-2 text-uppercase">Добавление одежды</h2>
-                                
+                                <br><br>
                                 <form id="clotchForm" method="POST" enctype="multipart/form-data">
                                     @csrf
                                     <input type="text" id="name" name="name"
@@ -55,7 +55,7 @@
     </section>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
+        document.addEventListener("DOMContentLoaded", function() {
             let isAuthenticated = @json(auth()->check());
 
             if (!isAuthenticated) {
@@ -83,7 +83,7 @@
             });
         }
 
-        document.getElementById('clotchForm').addEventListener('submit', function (e) {
+        document.getElementById('clotchForm').addEventListener('submit', function(e) {
             let isAuthenticated = @json(auth()->check());
 
             if (!isAuthenticated) {
@@ -96,7 +96,7 @@
                 }
 
                 const reader = new FileReader();
-                reader.onload = function (event) {
+                reader.onload = function(event) {
                     const clotch = {
                         id: Date.now().toString(),
                         name: document.getElementById('name').value,
@@ -122,33 +122,33 @@
                 let formData = new FormData(this);
 
                 fetch("{{ route('clotch.store') }}", {
-                    method: "POST",
-                    body: formData,
-                    headers: {
-                        "X-CSRF-TOKEN": document.querySelector('input[name="_token"]').value
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === "success") {
-                        showAlert(data.message || "Одежда успешно добавлена!", "success");
-                        setTimeout(() => {
-                            window.location.href = "{{ route('clotch.index') }}";
-                        }, 1500);
-                    } else {
-                        showAlert("Ошибка при добавлении!", "danger");
-                    }
-                })
-                .catch(error => {
-                    console.error("Ошибка:", error);
-                    showAlert("Ошибка сети!", "danger");
-                });
+                        method: "POST",
+                        body: formData,
+                        headers: {
+                            "X-CSRF-TOKEN": document.querySelector('input[name="_token"]').value
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === "success") {
+                            showAlert(data.message || "Одежда успешно добавлена!", "success");
+                            setTimeout(() => {
+                                window.location.href = "{{ route('clotch.index') }}";
+                            }, 1500);
+                        } else {
+                            showAlert("Ошибка при добавлении!", "danger");
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Ошибка:", error);
+                        showAlert("Ошибка сети!", "danger");
+                    });
             }
         });
 
         function showAlert(message, type) {
             let alertContainer = document.getElementById("alertContainer");
-            alertContainer.innerHTML = ""; 
+            alertContainer.innerHTML = "";
 
             let alertMessage = document.createElement("div");
             alertMessage.className = `alert alert-${type} text-center`;
