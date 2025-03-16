@@ -10,5 +10,11 @@ class Collection extends Model
     use HasFactory;
 
     protected $fillable = ['name', 'user_id']; 
+
+    public function clotches()
+{
+    return $this->belongsToMany(Clotch::class, 'collection_clotch');
+}
+
 }
 

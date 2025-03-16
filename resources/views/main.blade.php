@@ -28,6 +28,7 @@
         padding: 1 px 0;
     }
   </style>
+  
 </head>
 
 <body>
@@ -53,6 +54,7 @@
         </div>
       </nav>
     </header>
+    <div id="alertContainer" class="container mt-3"></div>
 
     @if (session('success'))
     <div class="alert alert-success">

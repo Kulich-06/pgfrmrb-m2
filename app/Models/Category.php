@@ -8,11 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 class Category extends Model
 {
     use HasFactory;
-    public function clotches() 
-{ 
- //категория содержит много товаров 
-    return $this->hasMany (Clotch::class); 
-    
-}
-protected $fillable=['name'];
+    protected $fillable = ['name', 'user_id'];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

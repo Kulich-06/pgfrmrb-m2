@@ -10,15 +10,17 @@ class CollectionController extends Controller
 {
     public function index()
     {
+        // Для авторизованных пользователей
         if (Auth::check()) {
             $collections = Collection::where('user_id', Auth::id())->get();
         } else {
+            // Для неавторизованных - показываем публичные коллекции
             $collections = Collection::whereNull('user_id')->get();
         }
-
+    
         return view('collection', compact('collections'));
     }
-
+    
     public function create()
     {
         return view('collection_create');
@@ -30,17 +32,17 @@ class CollectionController extends Controller
             'name' => 'required|string|max:255',
         ]);
     
+        // Если пользователь авторизован, привязываем коллекцию к его ID
         if (Auth::check()) {
-            // Для авторизованных пользователей сохраняем с их user_id
             Collection::create([
                 'name' => $request->name,
                 'user_id' => Auth::id(),
             ]);
         } else {
-            // Для неавторизованных сохраняем без user_id
+            // Для неавторизованных пользователей создаем коллекцию без привязки к пользователю
             Collection::create([
                 'name' => $request->name,
-                'user_id' => null, // Не добавляем user_id
+                'user_id' => null,
             ]);
         }
     
@@ -51,18 +53,24 @@ class CollectionController extends Controller
     {
         $collection = Collection::findOrFail($id);
 
+        // Удаляем коллекцию только если она принадлежит авторизованному пользователю
         if (Auth::check()) {
-            // Для авторизованных пользователей — удаляем только свою коллекцию
             if ($collection->user_id == Auth::id()) {
                 $collection->delete();
             }
         } else {
-            // Для неавторизованных — удаляем только те, которые не принадлежат пользователям
+            // Для неавторизованных пользователей удаляем только публичные коллекции
             if ($collection->user_id === null) {
                 $collection->delete();
             }
         }
 
         return redirect()->route('collection.index')->with('success', 'Коллекция удалена!');
+    }
+
+    public function show($id)
+    {
+        $collection = Collection::findOrFail($id);
+        return view('collection_show', compact('collection'));
     }
 }

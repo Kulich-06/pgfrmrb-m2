@@ -48,7 +48,8 @@ Route::get('/collection', [CollectionController::class, 'index'])->name('collect
 Route::get('/collection/create/', [CollectionController::class, 'create'])->name('collection.create');
 Route::post('/collection', [CollectionController::class, 'store'])->name('collection.store');
 Route::delete('/collections/{id}', [CollectionController::class, 'destroy'])->name('collection.destroy');
+Route::get('/collections/{id}', [CollectionController::class, 'show'])->name('collection.show');
 
 
-
+Route::get('/collection/{id}/select-clothes', [ClotchController::class, 'selectForCollection'])->name('clotch.select');
 

@@ -6,6 +6,7 @@ use App\Models\Color;
 use App\Models\Clotch;
 use App\Models\Season;
 use App\Models\Category;
+use App\Models\Collection;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
@@ -15,15 +16,20 @@ class ClotchController extends Controller
 
     public function create()
     {
-        $colors = Color::all();
+        $colors = auth()->check() ? Color::where('user_id', auth()->id())->get() : [];
         $seasons = Season::all();
-        $categories = Category::all();
+        $categories = auth()->check() ? Category::where('user_id', auth()->id())->get() : [];
+        $collections = Collection::all();
+
         return view('clotch_create', [
             'colors' => $colors,
             'seasons' => $seasons,
-            'categories' => $categories
+            'categories' => $categories,
+            'collections' => $collections
         ]);
     }
+
+
 
     public function store(Request $request)
     {
@@ -34,40 +40,63 @@ class ClotchController extends Controller
             'category_id' => 'required|exists:categories,id',
             'color_id' => 'required|exists:colors,id',
             'season_id' => 'required|exists:seasons,id',
+            'collections' => 'nullable|array', // Массив ID коллекций
+            'collections.*' => 'exists:collections,id',
         ]);
-    
+
         $filename = $request->file('img')->store('img');
-        Clotch::create(['img' => $filename, 'user_id' => auth()->id()] + $request->all());
-    
-        $validated['user_id'] = auth()->id(); // 👈 Добавляем user_id
-    
+
+        $clotch = Clotch::create([
+            'name' => $request->name,
+            'size' => $request->size,
+            'img' => $filename,
+            'category_id' => $request->category_id,
+            'color_id' => $request->color_id,
+            'season_id' => $request->season_id,
+            'user_id' => auth()->id(),
+        ]);
+
+        // Привязываем одежду к коллекциям через промежуточную таблицу
+        if ($request->has('collections')) {
+            $clotch->collections()->attach($request->collections);
+        }
+
         return redirect()->route('clotch.index')->with('success', 'Одежда успешно добавлена!');
     }
-    
-    
+
+
     public function index()
     {
-        $clotches = auth()->check() 
-            ? Clotch::where('user_id', auth()->id())->get() 
-            : collect();
-    
-        return view('index', compact('clotches'));
+        $clotches = auth()->check()
+            ? Clotch::where('user_id', auth()->id())->get()
+            : collect(); // Пустая коллекция, если пользователь не авторизован
+
+        $collections = Collection::all(); // Получаем все коллекции
+
+        return view('index', compact('clotches', 'collections'));
     }
-    
-    
+
+
+
 
     public function destroy($id)
-{
-    $clotch = Clotch::findOrFail($id);
-    
-    // Удаляем картинку, если она есть
-    if ($clotch->img) {
-        Storage::delete('storage/app/' . $clotch->img);
+    {
+        $clotch = Clotch::findOrFail($id);
+
+        // Удаляем картинку, если она есть
+        if ($clotch->img) {
+            Storage::delete('storage/app/' . $clotch->img);
+        }
+
+        $clotch->delete();
+
+        return redirect()->route('clotch.index')->with('success', 'Вещь успешно удалена!');
     }
+    public function selectForCollection($collection_id)
+    {
+        $collection = Collection::findOrFail($collection_id);
+        $clotches = Clotch::where('user_id', auth()->id())->get();
 
-    $clotch->delete();
-
-    return redirect()->route('clotch.index')->with('success', 'Вещь успешно удалена!');
-}
-
+        return view('clotch.select', compact('collection', 'clotches'));
+    }
 }

@@ -4,32 +4,50 @@ namespace App\Http\Controllers;
 
 use App\Models\Color;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ColorController extends Controller
 {
     public function create()
     {
-        return view('color_create', []);
+        $colors = auth()->check() ? Color::where('user_id', auth()->id())->get() : []; 
+        return view('color_create', compact('colors'));
     }
-    public function store(Request $request)
-    {
-        $request->validate([
-            'name' => 'required'
-        ]);
     
-        if (auth()->check()) {
-            Color::create($request->all());
-            return redirect()->route('color.create')->with('success', 'Цвет успешно добавлен');
-        } else {
-            // Сохраняем данные в localStorage на клиентской стороне
-            $color = $request->input('name');
-            echo "<script>
-                    let guestColors = JSON.parse(localStorage.getItem('guestColors')) || [];
-                    guestColors.push({name: '{$color}'});
-                    localStorage.setItem('guestColors', JSON.stringify(guestColors));
-                    window.location.href = '".route('color.create')."';
-                  </script>";
-        }
+    
+    public function store(Request $request)
+{
+    $request->validate([
+        'name' => 'required'
+    ]);
+
+    if (auth()->check()) {
+        $color = Color::create([
+            'name' => $request->input('name'),
+            'user_id' => auth()->id()
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Цвет успешно добавлен!',
+            'color' => $color
+        ]);
+    } else {
+        return response()->json([
+            'status' => 'guest',
+            'name' => $request->input('name')
+        ]);
     }
+}
+
+
+public function index()
+{
+    $colors = auth()->check() ? Color::where('user_id', auth()->id())->get() : [];
+    return view('color_index', compact('colors'));
+}
+
+
+    
     
 }
