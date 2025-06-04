@@ -1,30 +1,80 @@
 @extends('main')
 @section('title', 'Коллекции')
 @section('content')
-    <h3 class="text-center text-dark-50 mt-5">Коллекции</h3> <!-- Добавлен отступ от шапки -->
-    <br><br>
-    <div class="container">
-        <div class="row" style="margin-left:70px;">
-            <!-- Здесь будут отображаться коллекции из localStorage для неавторизованных пользователей -->
-            <div id="collectionsContainer"></div>
+    <style>
+        .collection-card {
+            background-color: #fff;
+            color: #222;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
 
-            <!-- Для авторизованных пользователей вы можете отображать коллекции из базы данных -->
+        .collection-card:hover {
+            border-color: #888;
+            background-color: #f7f7f7;
+        }
+
+        .collection-card.selected {
+            border: 2px solid #555;
+            background-color: #e2e2e2;
+        }
+
+        .btn-dark-outline {
+            color: #222;
+            border: 1px solid #555;
+            background-color: #fff;
+            transition: 0.3s;
+        }
+
+        .btn-dark-outline:hover {
+            background-color: #eee;
+            border-color: #333;
+        }
+
+        .select-all-link {
+            color: #222;
+            cursor: pointer;
+            text-decoration: underline;
+            margin-bottom: 15px;
+            display: inline-block;
+        }
+
+        .action-buttons {
+            margin-top: 20px;
+        }
+
+        .action-buttons .btn {
+            margin-right: 10px;
+        }
+    </style>
+
+    <h3 class="text-center text-secondary mt-3">Коллекции</h3>
+
+    <div class="container">
+        <div class="mb-3">
+            <span class="select-all-link" onclick="toggleSelectAll()">Выбрать все</span>
+            <button id="deleteSelectedBtn" class="btn btn-dark-outline d-none" onclick="deleteSelected()">Удалить
+                выбранные</button>
+        </div>
+
+        <div class="row" id="collectionsContainer">
             @foreach ($collections as $collection)
                 <div class="col-md-3 mb-4">
-                    <div class="card h-100">
+                    <div class="card collection-card" data-id="{{ $collection->id }}" onclick="toggleSelect(this)">
                         <div class="card-body d-flex flex-column">
                             <h5 class="card-title">{{ $collection->name }}</h5>
                             <div class="mt-auto d-flex justify-content-between">
-                                <a href="#" class="btn btn-outline-info">Посмотреть</a>
+                                <a href="#" class="btn btn-dark-outline"
+                                    onclick="event.stopPropagation()">Посмотреть</a>
+
                                 <form action="{{ route('collection.destroy', $collection->id) }}" method="POST"
                                     onsubmit="return confirm('Вы уверены, что хотите удалить эту коллекцию?');">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-outline-danger">Удалить</button>
+                                    <button type="submit" class="btn btn-dark-outline">Удалить</button>
                                 </form>
-
-                                <!-- Кнопка "Посмотреть" -->
-
                             </div>
                         </div>
                     </div>
@@ -32,66 +82,110 @@
             @endforeach
         </div>
 
-        <!-- Форма для добавления коллекции (для неавторизованных пользователей) -->
-        @guest
-            <div class="row mt-4">
-                <div class="col-12 text-center">
-                    <button class="btn btn-outline-light btn-lg" id="addCollectionBtn">Добавить коллекцию</button>
-                </div>
-            </div>
-        @endguest
+        {{-- Убираем кнопку добавления коллекции для гостей --}}
     </div>
 
     <script>
-        // Загружаем коллекции из localStorage
+        const selectedIds = new Set();
+        const deleteBtn = document.getElementById('deleteSelectedBtn');
+
+        function toggleSelect(card) {
+            const id = card.dataset.id;
+            card.classList.toggle('selected');
+
+            if (card.classList.contains('selected')) {
+                selectedIds.add(id);
+            } else {
+                selectedIds.delete(id);
+            }
+
+            deleteBtn.classList.toggle('d-none', selectedIds.size === 0);
+        }
+
+        function toggleSelectAll() {
+            const cards = document.querySelectorAll('.collection-card');
+            const allSelected = Array.from(cards).every(card => card.classList.contains('selected'));
+
+            cards.forEach(card => {
+                const id = card.dataset.id;
+                if (allSelected) {
+                    card.classList.remove('selected');
+                    selectedIds.delete(id);
+                } else {
+                    card.classList.add('selected');
+                    selectedIds.add(id);
+                }
+            });
+
+            deleteBtn.classList.toggle('d-none', selectedIds.size === 0);
+        }
+
+        function deleteSelected() {
+            if (!confirm('Удалить выбранные коллекции?')) return;
+
+            // Создаем массив промисов для всех запросов
+            const promises = [];
+
+            selectedIds.forEach(id => {
+                const promise = fetch(`/collections/${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        _method: 'DELETE'
+                    })
+                }).then(response => {
+                    if (response.ok) {
+                        // Удаляем карточку из DOM
+                        const cardElem = document.querySelector(`[data-id="${id}"]`);
+                        if (cardElem) {
+                            cardElem.parentElement.remove();
+                        }
+                    } else {
+                        alert(`Ошибка при удалении коллекции с ID: ${id}`);
+                    }
+                });
+                promises.push(promise);
+            });
+
+            Promise.all(promises).then(() => {
+                selectedIds.clear();
+                deleteBtn.classList.add('d-none');
+            });
+        }
+
+        // ======== Гостевые коллекции ========
+        @guest
         let guestCollections = JSON.parse(localStorage.getItem('guestCollections')) || [];
 
-        // Отображаем коллекции из localStorage
         guestCollections.forEach(collection => {
-            const collectionCard = `
-                <div class="col-md-3 mb-4">
-                    <div class="card h-100">
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="card-title">${collection.name}</h5>
-                            <div class="mt-auto d-flex justify-content-between">
-                                <button class="btn btn-outline-danger" onclick="deleteCollection('${collection.id}')">Удалить</button>
-                                <button class="btn btn-outline-info" onclick="viewCollection('${collection.id}')">Посмотреть</button>
-                            </div>
+            const card = `
+            <div class="col-md-3 mb-4">
+                <div class="card collection-card" data-id="${collection.id}" onclick="toggleSelect(this)">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">${collection.name}</h5>
+                        <div class="mt-auto d-flex justify-content-between">
+                            <button class="btn btn-dark-outline" onclick="event.stopPropagation(); deleteCollection('${collection.id}')">Удалить</button>
+                            <button class="btn btn-dark-outline" onclick="event.stopPropagation(); viewCollection('${collection.id}')">Посмотреть</button>
                         </div>
                     </div>
                 </div>
-            `;
-            document.getElementById('collectionsContainer').insertAdjacentHTML('beforeend', collectionCard);
+            </div>`;
+            document.getElementById('collectionsContainer').insertAdjacentHTML('beforeend', card);
         });
 
-        // Функция для удаления коллекции
         function deleteCollection(collectionId) {
-            guestCollections = guestCollections.filter(collection => collection.id !== collectionId);
+            guestCollections = guestCollections.filter(c => c.id !== collectionId);
             localStorage.setItem('guestCollections', JSON.stringify(guestCollections));
-            window.location.reload();
+            location.reload();
         }
 
-        // Функция для просмотра коллекции
         function viewCollection(collectionId) {
-            alert('Вы хотите просмотреть коллекцию с ID: ' + collectionId);
-            // Здесь можно добавить логику для перехода на страницу просмотра
-            // например, перенаправление:
+            alert('Вы выбрали коллекцию с ID: ' + collectionId);
             // window.location.href = '/collections/' + collectionId;
         }
-
-        // Обработчик кнопки добавления коллекции
-        document.getElementById('addCollectionBtn').addEventListener('click', function() {
-            const collectionName = prompt('Введите название коллекции:');
-            if (collectionName) {
-                const newCollection = {
-                    id: Date.now().toString(),
-                    name: collectionName
-                };
-                guestCollections.push(newCollection);
-                localStorage.setItem('guestCollections', JSON.stringify(guestCollections));
-                alert('Коллекция сохранена на устройстве!');
-                window.location.reload(); // Обновляем страницу для отображения новой коллекции
-            }
-        });
+        @endguest
     </script>
 @endsection

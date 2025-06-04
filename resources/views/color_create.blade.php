@@ -2,45 +2,43 @@
 @section('title', 'Создание цвета')
 @section('content')
 
-    <div id="alertContainer"></div>
+    <div id="alertContainer"
+        style="position: fixed; top: 70px; left: 50%; transform: translateX(-50%); width: 320px; z-index: 1050;"></div>
 
-    @if ($errors->any())
-        <div class="alert alert-danger">
-            <ul>
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
+    <div class="container d-flex justify-content-center align-items-center" style="padding-top:250px; padding-bottom: 60px;">
+        <div class="card bg-dark text-white" style="max-width: 400px; width: 100%; border-radius: 1rem;">
+            <div class="card-body p-4 p-sm-5">
 
-    <section class="vh-100 bg-image">
-        <div class="mask d-flex align-items-center h-100 gradient-custom-3">
-            <div class="container h-100">
-                <div class="row d-flex justify-content-center align-items-center h-100">
-                    <div class="col-12 col-md-8 col-lg-6 col-xl-5">
-                        <div class="card bg-dark text-white" style="border-radius: 1rem;">
-                            <div class="card-body p-5 text-center">
-                                <h2 class="fw-bold mb-2 text-uppercase">Добавление цвета</h2>
-                                <br>
-                                <form id="colorForm">
-                                    @csrf
-                                    <div class="form-outline mb-4">
-                                        <input type="text" id="name" name="name"
-                                            class="form-control form-control-lg" placeholder="Название" required />
-                                    </div><br>
-                                    <div class="d-flex justify-content-center">
-                                        <button type="submit" class="btn btn-outline-light btn-lg px-5">Добавить</button>
-                                    </div>
-                                </form>
+                <h3 class="text-center mb-4 fw-bold text-uppercase">Добавление цвета</h3>
 
-                            </div>
-                        </div>
+                @if ($errors->any())
+                    <div class="alert alert-danger">
+                        <ul class="mb-0">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
                     </div>
-                </div>
+                @endif
+
+                <form id="colorForm" autocomplete="off">
+                    @csrf
+
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Название цвета</label>
+                        <input type="text" id="name" name="name" class="form-control bg-opacity-25 border-0 "
+                            placeholder="Введите название цвета" required>
+                    </div>
+
+                    <div class="d-grid mb-3">
+                        <button type="submit" class="btn btn-outline-light">Добавить</button>
+                    </div>
+                </form>
+
             </div>
         </div>
-    </section>
+    </div>
+
     <script>
         document.getElementById("colorForm").addEventListener("submit", function(event) {
             event.preventDefault();
@@ -56,20 +54,13 @@
                 })
                 .then(response => response.json())
                 .then(data => {
-                    console.log("Ответ сервера:", data);
+                    const alertContainer = document.getElementById("alertContainer");
+                    alertContainer.innerHTML = "";
 
-                    let alertContainer = document.getElementById("alertContainer");
-                    alertContainer.innerHTML = ""; // Очищаем предыдущие сообщения
-
-                    let alertMessage = document.createElement("div");
-                    alertMessage.className = "alert text-center";
-                    alertMessage.style.position = "fixed";
-                    alertMessage.style.top = "60px"; // Отступ от шапки
-                    alertMessage.style.left = "50%";
-                    alertMessage.style.transform = "translateX(-50%)";
-                    alertMessage.style.width = "300px";
-                    alertMessage.style.zIndex = "1000";
+                    const alertMessage = document.createElement("div");
+                    alertMessage.className = "alert text-center small";
                     alertMessage.style.padding = "10px";
+                    alertMessage.style.borderRadius = "6px";
 
                     if (data.status === "guest") {
                         let guestColors = JSON.parse(localStorage.getItem("guestColors")) || [];
@@ -78,25 +69,31 @@
                         });
                         localStorage.setItem("guestColors", JSON.stringify(guestColors));
 
-                        alertMessage.innerText = "Цвет сохранен на устройстве!";
                         alertMessage.classList.add("alert-info");
+                        alertMessage.textContent = "Цвет сохранён локально на устройстве!";
                     } else if (data.status === "success" || data.message) {
-                        alertMessage.innerText = data.message || "Цвет успешно добавлен!";
                         alertMessage.classList.add("alert-success");
+                        alertMessage.textContent = data.message || "Цвет успешно добавлен!";
+                    } else if (data.errors) {
+                        alertMessage.classList.add("alert-danger");
+                        alertMessage.innerHTML = Object.values(data.errors).flat().join('<br>');
+                    } else {
+                        alertMessage.classList.add("alert-warning");
+                        alertMessage.textContent = "Произошла ошибка. Попробуйте снова.";
                     }
 
                     alertContainer.appendChild(alertMessage);
 
-                    // Убираем сообщение через 3 секунды
-                    setTimeout(() => {
-                        alertMessage.remove();
-                    }, 3000);
+                    setTimeout(() => alertMessage.remove(), 3500);
 
-                    document.getElementById("name").value = "";
+                    if (data.status === "success" || data.status === "guest") {
+                        document.getElementById("name").value = "";
+                    }
                 })
-                .catch(error => console.error("Ошибка:", error));
+                .catch(error => {
+                    console.error("Ошибка:", error);
+                });
         });
     </script>
-
 
 @endsection
