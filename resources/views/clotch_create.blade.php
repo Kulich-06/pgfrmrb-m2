@@ -2,101 +2,97 @@
 @section('title', 'Создание одежды')
 @section('content')
 
-    <div id="alertContainer"></div> {{-- Контейнер для уведомлений --}}
+<div class="container d-flex justify-content-center align-items-center" style="padding-top: 50px; padding-bottom: 60px;">
+    <div class="card bg-dark text-white" style="max-width: 450px; width: 100%; border-radius: 1rem;">
+        <div class="card-body p-4 p-sm-5">
 
-    <section class="vh-100 bg-image">
-        <div class="mask d-flex align-items-center h-100 gradient-custom-3">
-            <div class="container h-100">
-                <div class="row d-flex justify-content-center align-items-center h-100">
-                    <div class="col-12 col-md-8 col-lg-6 col-xl-5">
-                        <div class="card bg-dark text-white" style="border-radius: 1rem;">
-                            <div class="card-body p-5 text-center">
-                                <h2 class="fw-bold mb-2 text-uppercase">Добавление одежды</h2>
-                                <br>
-                                <form id="clotchForm" method="POST" enctype="multipart/form-data">
-                                    @csrf
-                                    <input type="text" id="name" name="name"
-                                        class="form-control form-control-lg mb-3" placeholder="Название" required />
-                                    <input type="text" id="size" name="size"
-                                        class="form-control form-control-lg mb-3" placeholder="Размер" required />
-                                    <input type="file" id="img" name="img" accept="image/*"
-                                        class="form-control form-control-lg mb-3" required />
+            <h3 class="fw-bold mb-4 text-uppercase text-center">Добавление одежды</h3>
 
-                                    <select name="category_id" id="category" class="form-control form-control-lg mb-3"
-                                        required>
-                                        <option value="">Выберите категорию</option>
-                                        @foreach ($categories as $category)
-                                            <option value="{{ $category->id }}">{{ $category->name }}</option>
-                                        @endforeach
-                                    </select>
-                                    <select name="color_id" id="color" class="form-control form-control-lg mb-3"
-                                        required>
-                                        <option value="">Выберите цвет</option>
-                                        @foreach ($colors as $color)
-                                            <option value="{{ $color->id }}">{{ $color->name }}</option>
-                                        @endforeach
-                                    </select>
-                                    <select name="season_id" id="season" class="form-control form-control-lg mb-3"
-                                        required>
-                                        <option value="">Выберите сезон</option>
-                                        @foreach ($seasons as $season)
-                                            <option value="{{ $season->id }}">{{ $season->name }}</option>
-                                        @endforeach
-                                    </select>
+            {{-- Контейнер для уведомлений --}}
+            <div id="alertContainer" style="position: fixed; top: 20px; width: 100%; pointer-events: none; z-index: 1050;"></div>
 
-                                    <button class="btn btn-outline-light btn-lg px-5" type="submit">Добавить</button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
+          <form id="clotchForm" method="POST" action="{{ route('clotch.store') }}" enctype="multipart/form-data" autocomplete="off">
+
+                @csrf
+
+                <div class="mb-3 text-start">
+                    <label for="name" class="form-label">Название</label>
+                    <input type="text" id="name" name="name" class="form-control bg-opacity-25 border-0 " placeholder="Название" required>
                 </div>
-            </div>
+
+                <div class="mb-3 text-start">
+                    <label for="size" class="form-label">Размер</label>
+                    <input type="text" id="size" name="size" class="form-control bg-opacity-25 border-0 " placeholder="Размер" required>
+                </div>
+
+                <div class="mb-3 text-start">
+                    <label for="img" class="form-label">Изображение</label>
+                    <input type="file" id="img" name="img" accept="image/*" class="form-control bg-opacity-25 border-0 " required>
+                </div>
+
+                <div class="mb-3 text-start">
+                    <label for="category" class="form-label">Категория</label>
+                    <select name="category_id" id="category" class="form-select bg-opacity-25 border-0 " required>
+                        <option value="" disabled selected>Выберите категорию</option>
+                        @foreach ($categories as $category)
+                            <option value="{{ $category->id }}">{{ $category->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="mb-3 text-start">
+                    <label for="color" class="form-label">Цвет</label>
+                    <select name="color_id" id="color" class="form-select bg-opacity-25 border-0 " required>
+                        <option value="" disabled selected>Выберите цвет</option>
+                        @foreach ($colors as $color)
+                            <option value="{{ $color->id }}">{{ $color->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="mb-4 text-start">
+                    <label for="season" class="form-label">Сезон</label>
+                    <select name="season_id" id="season" class="form-select bg-opacity-25 border-0 " required>
+                        <option value="" disabled selected>Выберите сезон</option>
+                        @foreach ($seasons as $season)
+                            <option value="{{ $season->id }}">{{ $season->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="d-grid">
+                    <button class="btn btn-outline-light btn-lg" type="submit">Добавить</button>
+                </div>
+            </form>
+
         </div>
-    </section>
+    </div>
+</div>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            let isAuthenticated = @json(auth()->check());
+<script>
+document.addEventListener("DOMContentLoaded", function()) {
+    const isAuthenticated = @json(auth()->check());
+    console.log('Auth:', isAuthenticated);
 
-            if (!isAuthenticated) {
-                loadGuestData();
+    if (!isAuthenticated) {
+        loadGuestData();
+    }
+
+    document.getElementById('clotchForm').addEventListener('submit', function(e) {
+        console.log('Submit triggered');
+        if (!isAuthenticated) {
+            e.preventDefault();
+
+            const imgFile = document.getElementById('img').files[0];
+            if (!imgFile) {
+                showAlert("Ошибка: загрузите изображение!", "danger");
+                return;
             }
-        });
 
-        function loadGuestData() {
-            let guestColors = JSON.parse(localStorage.getItem("guestColors") || "[]");
-            let colorSelect = document.getElementById("color");
-            guestColors.forEach(color => {
-                let option = document.createElement("option");
-                option.value = color.name;
-                option.textContent = color.name;
-                colorSelect.appendChild(option);
-            });
-
-            let guestCategories = JSON.parse(localStorage.getItem("guestCategories") || "[]");
-            let categorySelect = document.getElementById("category");
-            guestCategories.forEach(category => {
-                let option = document.createElement("option");
-                option.value = category;
-                option.textContent = category;
-                categorySelect.appendChild(option);
-            });
-        }
-
-        document.getElementById('clotchForm').addEventListener('submit', function(e) {
-            let isAuthenticated = @json(auth()->check());
-
-            if (!isAuthenticated) {
-                e.preventDefault();
-                const imgFile = document.getElementById('img').files[0];
-
-                if (!imgFile) {
-                    showAlert("Ошибка: загрузите изображение!", "danger");
-                    return;
-                }
-
-                const reader = new FileReader();
-                reader.onload = function(event) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                // Функция для сжатия и изменения размера изображения
+                resizeImage(event.target.result, 300, 300, function(resizedImg) {
                     const clotch = {
                         id: Date.now().toString(),
                         name: document.getElementById('name').value,
@@ -104,69 +100,132 @@
                         category: document.getElementById('category').selectedOptions[0].text,
                         color: document.getElementById('color').selectedOptions[0].text,
                         season: document.getElementById('season').selectedOptions[0].text,
-                        img: event.target.result
+                        img: resizedImg
                     };
 
                     let guestClotches = JSON.parse(localStorage.getItem('guestClotches') || "[]");
                     guestClotches.push(clotch);
-                    localStorage.setItem('guestClotches', JSON.stringify(guestClotches));
 
-                    showAlert("Одежда сохранена на этом устройстве!", "success");
-                    setTimeout(() => {
-                        window.location.href = "{{ route('clotch.index') }}";
-                    }, 1500);
-                };
-                reader.readAsDataURL(imgFile);
-            } else {
-                e.preventDefault();
-                let formData = new FormData(this);
+                    try {
+                        localStorage.setItem('guestClotches', JSON.stringify(guestClotches));
+                        showAlert("Одежда сохранена на этом устройстве!", "success");
+                        setTimeout(() => {
+                            window.location.href = "{{ route('clotch.index') }}";
+                        }, 1500);
+                    } catch (e) {
+                        console.error('Ошибка при сохранении в localStorage:', e);
+                        showAlert("Ошибка: недостаточно места для сохранения!", "danger");
+                    }
+                });
+            };
+            reader.readAsDataURL(imgFile);
 
-                fetch("{{ route('clotch.store') }}", {
-                        method: "POST",
-                        body: formData,
-                        headers: {
-                            "X-CSRF-TOKEN": document.querySelector('input[name="_token"]').value
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.status === "success") {
-                            showAlert(data.message || "Одежда успешно добавлена!", "success");
-                            setTimeout(() => {
-                                window.location.href = "{{ route('clotch.index') }}";
-                            }, 1500);
-                        } else {
-                            showAlert("Ошибка при добавлении!", "danger");
-                        }
-                    })
-                    .catch(error => {
-                        console.error("Ошибка:", error);
-                        showAlert("Ошибка сети!", "danger");
-                    });
-            }
+        } else {
+            e.preventDefault();
+
+            let formData = new FormData(this);
+            // Токен уже есть в форме через @csrf
+
+  fetch("{{ route('clotch.store') }}", {
+    method: "POST",
+    body: formData,
+})
+.then(async response => {
+    if (!response.ok) {
+        // Попытка получить текст ошибки с сервера
+        const errorText = await response.text();
+        console.error('Ошибка сервера:', errorText);
+        throw new Error('Сетевая ошибка: ' + response.status);
+    }
+    return response.json();
+})
+.then(data => {
+    console.log('Response data:', data);
+    if (data.status === "success") {
+        showAlert(data.message || "Одежда успешно добавлена!", "success");
+        setTimeout(() => {
+            window.location.href = "{{ route('clotch.index') }}";
+        }, 1500);
+    } else {
+        showAlert(data.message || "Ошибка при добавлении!", "danger");
+    }
+})
+.catch(error => {
+    console.error("Ошибка:", error);
+    showAlert("Ошибка сети! " + error.message, "danger");
+});
+
+
+    function loadGuestData() {
+        let guestColors = JSON.parse(localStorage.getItem("guestColors") || "[]");
+        let colorSelect = document.getElementById("color");
+        guestColors.forEach(color => {
+            let option = document.createElement("option");
+            option.value = color.name;
+            option.textContent = color.name;
+            colorSelect.appendChild(option);
         });
 
-        function showAlert(message, type) {
-            let alertContainer = document.getElementById("alertContainer");
-            alertContainer.innerHTML = "";
+        let guestCategories = JSON.parse(localStorage.getItem("guestCategories") || "[]");
+        let categorySelect = document.getElementById("category");
+        guestCategories.forEach(category => {
+            let option = document.createElement("option");
+            option.value = category;
+            option.textContent = category;
+            categorySelect.appendChild(option);
+        });
+    }
 
-            let alertMessage = document.createElement("div");
-            alertMessage.className = `alert alert-${type} text-center`;
-            alertMessage.style.position = "fixed";
-            alertMessage.style.top = "60px";
-            alertMessage.style.left = "50%";
-            alertMessage.style.transform = "translateX(-50%)";
-            alertMessage.style.width = "300px";
-            alertMessage.style.zIndex = "1000";
-            alertMessage.style.padding = "10px";
-            alertMessage.innerText = message;
+    function resizeImage(base64Str, maxWidth, maxHeight, callback) {
+        let img = new Image();
+        img.onload = () => {
+            let canvas = document.createElement('canvas');
+            let ctx = canvas.getContext('2d');
 
-            alertContainer.appendChild(alertMessage);
+            let ratio = Math.min(maxWidth / img.width, maxHeight / img.height);
+            canvas.width = img.width * ratio;
+            canvas.height = img.height * ratio;
 
-            setTimeout(() => {
-                alertMessage.remove();
-            }, 3000);
-        }
-    </script>
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+            // JPEG с качеством 0.7 — меньше размер
+            callback(canvas.toDataURL('image/jpeg', 0.7));
+        };
+        img.src = base64Str;
+    }
+
+    function showAlert(message, type) {
+        let alertContainer = document.getElementById("alertContainer");
+        alertContainer.innerHTML = "";
+
+        let alertMessage = document.createElement("div");
+        alertMessage.className = `alert alert-${type} alert-dismissible fade show text-center`;
+        alertMessage.style.position = "fixed";
+        alertMessage.style.top = "20px";
+        alertMessage.style.left = "50%";
+        alertMessage.style.transform = "translateX(-50%)";
+        alertMessage.style.minWidth = "300px";
+        alertMessage.style.zIndex = "1050";
+        alertMessage.style.pointerEvents = "auto";
+        alertMessage.innerText = message;
+
+        // Кнопка закрытия
+        let btnClose = document.createElement('button');
+        btnClose.type = 'button';
+        btnClose.className = 'btn-close btn-close-white'; // для темного фона
+        btnClose.setAttribute('aria-label', 'Close');
+        btnClose.onclick = () => alertMessage.remove();
+        alertMessage.appendChild(btnClose);
+
+        alertContainer.appendChild(alertMessage);
+
+        setTimeout(() => {
+            alertMessage.classList.remove('show');
+            alertMessage.classList.add('hide');
+            setTimeout(() => alertMessage.remove(), 500);
+        }, 4000);
+    }
+});
+</script>
 
 @endsection

@@ -1,98 +1,97 @@
 @extends('main')
 @section('title', 'Создание категории')
 @section('content')
-    @if ($errors->any())
-        <div class="alert alert-danger">
-            <ul>
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
 
-    <section class="vh-100 bg-image">
-        <div class="mask d-flex align-items-center h-100 gradient-custom-3">
-            <div class="container h-100">
-                <div class="row d-flex justify-content-center align-items-center h-100">
-                    <div class="col-12 col-md-8 col-lg-6 col-xl-5">
-                        <div class="card bg-dark text-white" style="border-radius: 1rem;">
-                            <div class="card-body p-5 text-center">
-                                <h2 class="fw-bold mb-2 text-uppercase">Добавление категории</h2>
-                                <br>
-                                <!-- Добавили контейнер для алертов -->
-                                <div id="alertContainer"></div>
+<div id="alertContainer" style="position: fixed; top: 70px; left: 50%; transform: translateX(-50%); width: 320px; z-index: 1050;"></div>
 
-                                <form id="categoryForm">
-                                    @csrf
-                                    <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                                    <div class="form-outline mb-4">
-                                        <input type="text" id="name" name="name"
-                                            class="form-control form-control-lg" placeholder="Название" required />
-                                    </div>
-                                    <br>
-                                    <div class="d-flex justify-content-center">
-                                        <button type="submit" class="btn btn-outline-light btn-lg px-5">Добавить</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
+<div class="container d-flex justify-content-center align-items-center" style="padding-top:250px; padding-bottom: 60px;">
+    <div class="card bg-dark text-white" style="max-width:480px; width: 100%; border-radius: 1rem;">
+        <div class="card-body p-4 p-sm-5">
+
+            <h3 class="text-center mb-4 fw-bold text-uppercase">Добавление категории</h3>
+
+            @if ($errors->any())
+                <div class="alert alert-danger">
+                    <ul class="mb-0">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
                 </div>
-            </div>
+            @endif
+
+            <form id="categoryForm" autocomplete="off">
+                @csrf
+
+                <div class="mb-3">
+                    <label for="name" class="form-label">Название категории</label>
+                    <input type="text" id="name" name="name"
+                        class="form-control bg-opacity-25 border-0"
+                        placeholder="Введите название категории" required>
+                </div>
+
+                <div class="d-grid mb-3">
+                    <button type="submit" class="btn btn-outline-light">Добавить</button>
+                </div>
+            </form>
+
         </div>
-    </section>
+    </div>
+</div>
 
-    <script>
-        document.getElementById("categoryForm").addEventListener("submit", function(event) {
-            event.preventDefault();
+<script>
+document.getElementById("categoryForm").addEventListener("submit", function(event) {
+    event.preventDefault();
 
-            let formData = new FormData(this);
+    let formData = new FormData(this);
 
-            fetch("{{ route('category.store') }}", {
-                    method: "POST",
-                    body: formData,
-                    headers: {
-                        "X-CSRF-TOKEN": document.querySelector('input[name="_token"]').value
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    console.log("Ответ сервера:", data);
+    fetch("{{ route('category.store') }}", {
+        method: "POST",
+        body: formData,
+        headers: {
+            "X-CSRF-TOKEN": document.querySelector('input[name="_token"]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        const alertContainer = document.getElementById("alertContainer");
+        alertContainer.innerHTML = "";
 
-                    let alertContainer = document.getElementById("alertContainer");
-                    alertContainer.innerHTML = ""; // Очищаем предыдущие сообщения
+        const alertMessage = document.createElement("div");
+        alertMessage.className = "alert text-center small";
+        alertMessage.style.padding = "10px";
+        alertMessage.style.borderRadius = "6px";
 
-                    let alertMessage = document.createElement("div");
-                    alertMessage.className = "alert alert-info text-center"; // Добавляем стили Bootstrap
-                    alertMessage.style.position = "fixed";
-                    alertMessage.style.top = "60px"; // Отступ от шапки
-                    alertMessage.style.left = "50%";
-                    alertMessage.style.transform = "translateX(-50%)";
-                    alertMessage.style.width = "300px";
-                    alertMessage.style.zIndex = "1000";
+        if (data.status === "guest") {
+            let guestCategories = JSON.parse(localStorage.getItem("guestCategories")) || [];
+            guestCategories.push({ name: data.name });
+            localStorage.setItem("guestCategories", JSON.stringify(guestCategories));
 
-                    if (data.status === "guest") {
-                        let guestCategories = JSON.parse(localStorage.getItem("guestCategories")) || [];
-                        guestCategories.push(data.name);
-                        localStorage.setItem("guestCategories", JSON.stringify(guestCategories));
+            alertMessage.classList.add("alert-info");
+            alertMessage.textContent = "Категория сохранена локально на устройстве!";
+        } else if (data.status === "success" || data.message) {
+            alertMessage.classList.add("alert-success");
+            alertMessage.textContent = data.message || "Категория успешно добавлена!";
+        } else if(data.errors) {
+            alertMessage.classList.add("alert-danger");
+            alertMessage.innerHTML = Object.values(data.errors).flat().join('<br>');
+        } else {
+            alertMessage.classList.add("alert-warning");
+            alertMessage.textContent = "Произошла ошибка. Попробуйте снова.";
+        }
 
-                        alertMessage.innerText = "Категория сохранена на устройстве!";
-                    } else if (data.status === "success") {
-                        alertMessage.innerText = data.message;
-                    }
+        alertContainer.appendChild(alertMessage);
 
-                    alertContainer.appendChild(alertMessage);
+        setTimeout(() => alertMessage.remove(), 3500);
 
-                    // Убираем сообщение через 3 секунды
-                    setTimeout(() => {
-                        alertMessage.remove();
-                    }, 3000);
-
-                    document.getElementById("name").value = "";
-                })
-                .catch(error => console.error("Ошибка:", error));
-        });
-    </script>
+        if(data.status === "success" || data.status === "guest") {
+            document.getElementById("name").value = "";
+        }
+    })
+    .catch(error => {
+        console.error("Ошибка:", error);
+    });
+});
+</script>
 
 @endsection
