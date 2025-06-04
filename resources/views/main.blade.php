@@ -1,34 +1,111 @@
-@extends('main')
-@section('title', 'Профиль')
-@section('content')
+<!DOCTYPE html>
+<html lang="en">
 
-    <div class="container d-flex justify-content-center align-items-center" style="padding-top: 230px; padding-bottom: 60px;">
-        <div class="card bg-dark text-white"
-            style="max-width: 380px; width: 100%; border-radius: 1rem; background: linear-gradient(135deg, #2c2f33, #23272a);">
-            <div class="card-body p-4">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@yield('title')</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 
-                <h4 class="mb-4 text-center fw-semibold text-white" style="letter-spacing: 1px; text-transform: uppercase;">
-                    Профиль пользователя
-                </h4>
+    <style>
+        html,
+        body {
+            height: 100%;
+            /* Делаем страницу на всю высоту */
+            margin: 0;
+        }
 
-                <p class="mb-3 text-center fs-5">
-                    <strong>Имя:</strong> <span class="text-light">{{ Auth::user()->name }}</span>
-                </p>
-                <p class="mb-3 text-center fs-5">
-                    <strong>Логин:</strong> <span class="text-light">{{ Auth::user()->login }}</span>
-                </p>
-                <p class="mb-3 text-center fs-5">
-                    <strong>Почта:</strong>
-                    <a href="mailto:{{ Auth::user()->email }}"
-                        class="text-light text-decoration-underline">{{ Auth::user()->email }}</a>
-                </p>
-                <p class="mb-0 text-center fs-6 text-white-50">
-                    <strong>Зарегистрирован:</strong><br>
-                    {{ Auth::user()->created_at->format('d.m.Y H:i') }}
-                </p>
+        .navbar .nav-link {
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: 500;
+            margin-left: 1rem;
+            padding: 0.5rem 0;
+            transition: color 0.2s ease;
+            letter-spacing: 0.3px;
+        }
 
+        .navbar .nav-link:hover {
+            color: white;
+            text-decoration: underline;
+        }
+
+        .navbar-brand {
+            font-size: 1.5rem;
+            color: white !important;
+        }
+
+        .wrapper {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            /* Минимальная высота на весь экран */
+        }
+
+        .content {
+            flex: 1;
+            /* Занимает всю доступную высоту, выталкивая футер вниз */
+        }
+
+        footer {
+            background-color: #212529;
+            color: white;
+            text-align: center;
+            padding: 1 px 0;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div class="wrapper">
+        <header>
+            <nav class="navbar bg-dark">
+                <div class="container-fluid d-flex align-items-center">
+                    <a class="navbar-brand fw-bold">DigiCloset</a>
+                    <div class="d-flex align-items-center ms-auto">
+                        <a class="nav-link" href="{{ route('index') }}">Главная</a>
+                        <a class="nav-link" href="{{ route('collection.index') }}">Коллекции</a>
+
+                        @guest
+                            <a class="nav-link" href="{{ route('register.form') }}">Регистрация</a>
+                            <a class="nav-link" href="{{ route('login.form') }}">Вход</a>
+                        @endguest
+
+                        @auth
+                            <a class="nav-link" href="{{ route('profile') }}">Профиль</a>
+                            <a class="nav-link" href="{{ route('logout') }}">Выйти</a>
+                        @endauth
+                    </div>
+                </div>
+            </nav>
+
+
+        </header>
+        <div id="alertContainer" class="container mt-3"></div>
+
+        @if (session('success'))
+            <div class="alert alert-success">
+                {{ session('success') }}
             </div>
+        @endif
+
+        <div class="content">
+            @yield('header')
+            @yield('content')
         </div>
+
+        <footer class="text-center text-lg-start">
+            <div class="text-center p-3">
+                <a class="nav-link active text-white-50 fw-bold" href="{{ route('index') }}">DigiCloset</a>
+            </div>
+        </footer>
     </div>
 
-@endsection
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous">
+    </script>
+</body>
+
+</html>
+
