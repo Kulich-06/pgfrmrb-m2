@@ -31,38 +31,46 @@ class ClotchController extends Controller
 
 
 
+
     public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'size' => 'required|string|max:10',
-            'img' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'category_id' => 'required|exists:categories,id',
-            'color_id' => 'required|exists:colors,id',
-            'season_id' => 'required|exists:seasons,id',
-            'collections' => 'nullable|array', // Массив ID коллекций
-            'collections.*' => 'exists:collections,id',
+{
+    $validated = $request->validate([
+        'name' => 'required|string|max:255',
+        'size' => 'required|string|max:10',
+        'img' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'category_id' => 'required|exists:categories,id',
+        'color_id' => 'required|exists:colors,id',
+        'season_id' => 'required|exists:seasons,id',
+        'collections' => 'nullable|array',
+        'collections.*' => 'exists:collections,id',
+    ]);
+
+    $filename = $request->file('img')->store('img');
+
+    $clotch = Clotch::create([
+        'name' => $request->name,
+        'size' => $request->size,
+        'img' => $filename,
+        'category_id' => $request->category_id,
+        'color_id' => $request->color_id,
+        'season_id' => $request->season_id,
+        'user_id' => auth()->id(),
+    ]);
+
+    if ($request->has('collections')) {
+        $clotch->collections()->attach($request->collections);
+    }
+
+    if ($request->ajax()) {
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Одежда успешно добавлена!'
         ]);
-
-        $filename = $request->file('img')->store('img');
-
-        $clotch = Clotch::create([
-            'name' => $request->name,
-            'size' => $request->size,
-            'img' => $filename,
-            'category_id' => $request->category_id,
-            'color_id' => $request->color_id,
-            'season_id' => $request->season_id,
-            'user_id' => auth()->id(),
-        ]);
-
-        // Привязываем одежду к коллекциям через промежуточную таблицу
-        if ($request->has('collections')) {
-            $clotch->collections()->attach($request->collections);
-        }
-
+    } else {
         return redirect()->route('clotch.index')->with('success', 'Одежда успешно добавлена!');
     }
+}
+
 
 
     public function index()
@@ -84,9 +92,10 @@ class ClotchController extends Controller
         $clotch = Clotch::findOrFail($id);
 
         // Удаляем картинку, если она есть
-        if ($clotch->img) {
-            Storage::delete('storage/app/' . $clotch->img);
-        }
+       if ($clotch->img) {
+    Storage::delete($clotch->img);
+}
+
 
         $clotch->delete();
 
