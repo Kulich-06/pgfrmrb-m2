@@ -201,10 +201,15 @@
                 e.preventDefault();
                 let formData = new FormData(this);
 
-                fetch("{{ route('clotch.store') }}", {
-                    method: "POST",
-                    body: formData,
-                })
+               fetch("{{ route('clotch.store') }}", {
+    method: "POST",
+    body: formData,
+    headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json'
+    }
+})
+
                 .then(async response => {
                     if (!response.ok) {
                         const errorText = await response.text();
